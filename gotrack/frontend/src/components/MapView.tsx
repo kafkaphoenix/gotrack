@@ -1,11 +1,12 @@
-import { MapContainer, TileLayer, ZoomControl, Marker, Popup, useMap } from "react-leaflet";
+import React, { useState } from 'react';
+import { MapContainer, TileLayer, ZoomControl, Marker, Popup, useMap } from 'react-leaflet';
 import { DivIcon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import {UpdatePosition} from "../../wailsjs/go/main/App.js";
 
 function MapView() {
-    const lat = 2.32
-    const lon = 4.67
-    const position = [lat, lon];
+    const [lat, setLat] = useState(2.32);
+    const [lon, setLon] = useState(4.67);
     const zoomLevel = 4;
 
     const currentLocationMarker = new DivIcon({
@@ -20,9 +21,21 @@ function MapView() {
     });
 
 
+    const updateLocation = () => {
+        UpdatePosition()
+            .then(response => {
+                console.log("lat and lon: ", response)
+                setLat(Number(response[0]));
+                setLon(Number(response[1]));
+            })
+            .catch(error => {
+                console.error("error getting backend", error);
+            });
+    };
+
     return (
         <MapContainer
-            center={position}
+            center={[lat, lon]}
             zoom={zoomLevel}
             scrollWheelZoom={true}
             zoomControl={false}
@@ -41,6 +54,23 @@ function MapView() {
                 </Popup>
             </Marker>
             <ZoomControl position="topright" />
+            <button
+                style={{
+                    position: 'absolute',
+                    top: 10,
+                    left: 10,
+                    zIndex: 1000,
+                    backgroundColor: 'black',
+                    padding: '5px 10px',
+                    border: 'none',
+                    color:'white',
+                    borderRadius: '5px',
+                    cursor: 'pointer'
+                }}
+                onClick={updateLocation}
+            >
+                Update Location
+            </button>
         </MapContainer>
     );
 }

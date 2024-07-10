@@ -10,18 +10,18 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
-//go:embed build/appicon.png
-var icon []byte
-
 func main() {
 	// Create an instance of the app structure
 	app := NewApp()
 
 	// Create application with options
 	err := wails.Run(&options.App{
-		Title:            "go markdown",
-		Width:            1024,
-		Height:           768,
+		Title:  "gotrack",
+		Width:  1024,
+		Height: 768,
+		Debug: options.Debug{
+			OpenInspectorOnStartup: true,
+		},
 		Assets:           assets,
 		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
 		OnStartup:        app.startup,

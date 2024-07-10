@@ -2,25 +2,11 @@ package main
 
 import (
 	"context"
-	lib "gotrack/internal"
-	"os"
-	"path"
-
-	"github.com/mitchellh/go-homedir"
-	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"gotrack/internal"
 )
-
-type FileWithContent struct {
-	Name    string `json:"name,omitempty"`
-	Content string `json:"content,omitempty"`
-	HTML    string `json:"html,omitempty"`
-}
 
 type App struct {
 	ctx          context.Context
-	filename     string
-	markdown     string
-	renderedHTML string
 }
 
 // NewApp creates a new App application struct
@@ -51,90 +37,11 @@ func (a *App) shutdown(ctx context.Context) {
 	// Perform your teardown here
 }
 
-// SendMarkdownToRenderer sends markdown to the renderer
-func (a *App) SendMarkdownToRenderer(content string) string {
-	a.markdown = content
-	a.renderedHTML = lib.RenderMD(content)
-	return a.renderedHTML
-}
-
-func (a *App) Save() (string, error) {
-	hd, err := homedir.Dir()
+// UpdatePosition will fetch the ISS api and return the new lat and lon
+func (a *App) UpdatePosition() []string {
+	latLon, err := internal.GetISS()
 	if err != nil {
-		return "", err
+		return []string{"0.00", "0.00"}
 	}
-
-	chosenPath, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
-		DefaultDirectory:           path.Join(hd, "Documents"),
-		DefaultFilename:            a.filename,
-		Title:                      "Save file",
-		ShowHiddenFiles:            false,
-		CanCreateDirectories:       true,
-		TreatPackagesAsDirectories: true,
-	})
-	if err != nil {
-		return "", err
-	}
-	err = os.WriteFile(chosenPath, []byte(a.markdown), 0644)
-	if err != nil {
-		return "", err
-	}
-	return chosenPath, nil
-}
-
-func (a *App) Open() (FileWithContent, error) {
-	hd, err := homedir.Dir()
-	if err != nil {
-		return FileWithContent{}, err
-	}
-	openedFile, err := runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
-		DefaultDirectory: path.Join(hd, "Documents"),
-		Title:            "Open file",
-		Filters: []runtime.FileFilter{
-			{
-				DisplayName: "Markdown files",
-				Pattern:     "*.md",
-			},
-			{
-				DisplayName: "All files",
-				Pattern:     "*",
-			},
-		},
-		ShowHiddenFiles:            false,
-		CanCreateDirectories:       true,
-		ResolvesAliases:            true,
-		TreatPackagesAsDirectories: true,
-	})
-	fileContent, err := os.ReadFile(openedFile)
-	if err != nil {
-		return FileWithContent{}, err
-	}
-	a.filename = openedFile
-	a.markdown = string(fileContent)
-	a.renderedHTML = lib.RenderMD(a.markdown)
-	return FileWithContent{
-		Name:    a.filename,
-		Content: a.markdown,
-		HTML:    a.renderedHTML,
-	}, nil
-}
-
-func (a *App) Export() error {
-	hd, err := homedir.Dir()
-	if err != nil {
-		return err
-	}
-	chosenPath, err := runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
-		DefaultDirectory:           path.Join(hd, "Documents"),
-		DefaultFilename:            a.filename,
-		Title:                      "Export to PDF",
-		ShowHiddenFiles:            false,
-		CanCreateDirectories:       true,
-		TreatPackagesAsDirectories: true,
-	})
-	if err != nil {
-		return err
-	}
-
-	return lib.Pdf(chosenPath, a.markdown)
+	return latLon
 }

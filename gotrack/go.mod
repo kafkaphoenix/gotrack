@@ -2,12 +2,7 @@ module gotrack
 
 go 1.22.3
 
-require (
-	github.com/go-pdf/fpdf v0.9.0
-	github.com/mitchellh/go-homedir v1.1.0
-	github.com/wailsapp/wails/v2 v2.8.2
-	github.com/yuin/goldmark v1.7.1
-)
+require github.com/wailsapp/wails/v2 v2.8.2
 
 require (
 	github.com/bep/debounce v1.2.1 // indirect
